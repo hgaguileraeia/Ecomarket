@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoMarket - Catálogo y Cotizador</title>
+    <style>
+        :root {
+            --verde: #006341;
+            --verde-oscuro: #00472e;
+            --fondo: #f4f7f5;
+            --tarjeta: #ffffff;
+            --texto: #1f2933;
+            --borde: #d9e2ec;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: var(--fondo);
+            color: var(--texto);
+            padding: 20px;
+        }
+        .contenedor {
+            max-width: 820px;
+            margin: 0 auto;
+        }
+        header {
+            background-color: var(--verde);
+            color: #ffffff;
+            padding: 18px 22px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        header h1 {
+            margin: 0 0 6px 0;
+            font-size: 1.5rem;
+        }
+        header p {
+            margin: 0;
+            font-size: 0.9rem;
+            opacity: 0.92;
+        }
+        .panel {
+            background: var(--tarjeta);
+            border: 1px solid var(--borde);
+            border-radius: 8px;
+            padding: 18px;
+            margin-bottom: 20px;
+        }
+        .fila {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .campo {
+            flex: 1 1 180px;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        input, select {
+            padding: 9px 10px;
+            border: 1px solid var(--borde);
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        button {
+            background-color: var(--verde);
+            color: #ffffff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: var(--verde-oscuro);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--tarjeta);
+        }
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid var(--borde);
+            text-align: left;
+            font-size: 0.92rem;
+        }
+        th {
+            background-color: #eef3f0;
+        }
+        .total-box {
+            margin-top: 14px;
+            text-align: right;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <header>
+            <h1>EcoMarket — Cotizador de Insumos Ecológicos</h1>
+            <p>CECyTEC Plantel 5 Coyote | Grupo 302 | HTML5 + CSS + JS Ligero</p>
+        </header>
+
+        <section class="panel">
+            <h2>Agregar Producto al Pedido</h2>
+            <form id="form-pedido">
+                <div class="fila">
+                    <div class="campo">
+                        <label for="producto">Producto</label>
+                        <select id="producto" required>
+                            <option value="Botella Reutilizable Acero|180">Botella Reutilizable Acero ($180)</option>
+                            <option value="Bolsa de Yute Reforzada|65">Bolsa de Yute Reforzada ($65)</option>
+                            <option value="Jabón Artesanal Biodegradable|45">Jabón Artesanal Biodegradable ($45)</option>
+                            <option value="Lámpara Solar Portátil|240">Lámpara Solar Portátil ($240)</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label for="cantidad">Cantidad</label>
+                        <input type="number" id="cantidad" min="1" max="100" value="1" required>
+                    </div>
+                </div>
+                <button type="submit">Agregar al Resumen</button>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>Detalle del Pedido</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Precio Unit.</th>
+                        <th>Cant.</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpo-tabla">
+                    <tr>
+                        <td colspan="4" style="text-align: center;">Aún no se han agregado productos.</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="total-box" id="total-general">Total: $0.00</div>
+        </section>
+    </div>
+
+    <script>
+        const form = document.getElementById('form-pedido');
+        const cuerpoTabla = document.getElementById('cuerpo-tabla');
+        const totalGeneral = document.getElementById('total-general');
+        let items = [];
+
+        form.addEventListener('submit', function(evento) {
+            evento.preventDefault();
+            const [nombre, precioStr] = document.getElementById('producto').value.split('|');
+            const precio = parseFloat(precioStr);
+            const cantidad = parseInt(document.getElementById('cantidad').value, 10) || 1;
+
+            items.push({
+                nombre: nombre,
+                precio: precio,
+                cantidad: cantidad,
+                subtotal: precio * cantidad
+            });
+
+            renderizarTabla();
+            document.getElementById('cantidad').value = 1;
+        });
+
+        function renderizarTabla() {
+            if (items.length === 0) {
+                cuerpoTabla.innerHTML = '<tr><td colspan="4" style="text-align: center;">Aún no se han agregado productos.</td></tr>';
+                totalGeneral.textContent = 'Total: $0.00';
+                return;
+            }
+
+            let htmlFilas = '';
+            let sumaTotal = 0;
+
+            for (let i = 0; i < items.length; i++) {
+                const fila = items[i];
+                sumaTotal += fila.subtotal;
+                htmlFilas += `
+                    <tr>
+                        <td><strong>${fila.nombre}</strong></td>
+                        <td>$${fila.precio.toFixed(2)}</td>
+                        <td>${fila.cantidad}</td>
+                        <td><strong>$${fila.subtotal.toFixed(2)}</strong></td>
+                    </tr>
+                `;
+            }
+
+            cuerpoTabla.innerHTML = htmlFilas;
+            totalGeneral.textContent = `Total: $${sumaTotal.toFixed(2)}`;
+        }
+    </script>
+</body>
+</html>
